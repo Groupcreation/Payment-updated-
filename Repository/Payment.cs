@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 using CsvHelper;
 using Payment.Models;
 
@@ -15,36 +14,48 @@ namespace Payment.Repository
         {
 
             PaymentDetails payment = new PaymentDetails();
-            payment.CurrentBalance = det.CreditLimit;               //current balance initiated
-           
-            // int Count = 0;
-           /* using (var reader = new StreamReader("TransactionRecord.csv"))       //csv file read
-            using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
+                         
+            try
             {
-                var count = csv.GetRecords<TransactionRecords>().Where(x => x.CreditCardNumber == det.CreditCardNumber).Select(x => x.Count);
-                foreach (int counter in count)
+                payment.CurrentBalance = det.CreditLimit;   //current balance initiated
+                int Count = 0;
+                using (var reader = new StreamReader("TransactionRecord.csv"))       //csv file read
+                using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
                 {
-                    Count += counter;
-                }
-                if (Count == 1)
-                {
-                    var limit = csv.GetRecords<TransactionRecords>().Where(x => x.CreditCardNumber == det.CreditCardNumber).Select(x => x.CreditLimit);
-                    foreach (int Limit in limit)
+                    var count = csv.GetRecords<TransactionRecords>().Where(x => x.CreditCardNumber == det.CreditCardNumber).Select(x => x.Count);
+                    foreach (int counter in count)
                     {
-                        payment.CurrentBalance = Limit;
+                        Count += counter;
                     }
-                    payment.Message = "Only one transaction per card allowed";
-                    return payment;
+                    if (Count == 1)
+                    {
+                        var limit = csv.GetRecords<TransactionRecords>().Where(x => x.CreditCardNumber == det.CreditCardNumber).Select(x => x.CreditLimit);
+                        foreach (int Limit in limit)
+                        {
+                            payment.CurrentBalance = Limit;
+                        }
+                        payment.Message = "Only one transaction per card allowed";
+                        return payment;
+                    }
+
+                    reader.Close();
                 }
-                reader.Close();
             }
-           */
+
+            catch(Exception exception)
+            {
+               
+                return exception;
+            }
+            
+          
+           
 
             if (payment.CurrentBalance >= det.ProcessingCharge)
             {
                 payment.CurrentBalance -= det.ProcessingCharge;
                 payment.Message = "Successful";
-                /*var records = new List<TransactionRecords>
+                var records = new List<TransactionRecords>
                 {
                     new TransactionRecords { CreditCardNumber = det.CreditCardNumber, CreditLimit = payment.CurrentBalance, Count = 1 }
                 };
@@ -53,7 +64,7 @@ namespace Payment.Repository
                 {
                     csv.WriteRecords(records);                   //csv file written
                     writer.Close();
-                }*/
+                }
             }
             else
             {
